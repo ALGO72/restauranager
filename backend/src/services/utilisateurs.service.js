@@ -43,3 +43,17 @@ exports.toggleActif = async (id) => {
 exports.deleteEmploye = (id) => prisma.utilisateur.delete({
   where: { id }
 })
+
+exports.changePassword = async (id, ancienMotDePasse, nouveauMotDePasse) => {
+  const user = await prisma.utilisateur.findUnique({ where: { id } })
+  if (!user) throw new Error('Utilisateur introuvable')
+
+  const valid = await bcrypt.compare(ancienMotDePasse, user.motDePasse)
+  if (!valid) throw new Error('Ancien mot de passe incorrect')
+
+  const hash = await bcrypt.hash(nouveauMotDePasse, 10)
+  return prisma.utilisateur.update({
+    where: { id },
+    data: { motDePasse: hash }
+  })
+}

@@ -91,3 +91,9 @@ model Achat {
   note         String?
   produit      ProduitStock @relation(fields: [produitId], references: [id])
 }
+
+model Parametre {
+  id     Int    @id @default(autoincrement())
+  cle    String @unique
+  valeur String @db.Text
+}

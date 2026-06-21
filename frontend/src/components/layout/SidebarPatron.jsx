@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useParametres } from '../../context/ParametresContext'
 
 const navItems = [
   { to: '/patron/dashboard',  icon: '📊', label: 'Tableau de bord' },
@@ -9,10 +10,12 @@ const navItems = [
   { to: '/patron/ventes',     icon: '🧾', label: 'Ventes' },
   { to: '/patron/benefices',  icon: '📈', label: 'Bénéfices' },
   { to: '/patron/employes',   icon: '👥', label: 'Employés' },
+  { to: '/patron/parametres', icon: '⚙️', label: 'Paramètres' },
 ]
 
 export default function SidebarPatron() {
   const { user, logout } = useAuth()
+  const parametres = useParametres()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -27,11 +30,28 @@ export default function SidebarPatron() {
   return (
     <aside className="w-52 bg-stone-900 flex flex-col flex-shrink-0 h-screen">
 
+      {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
-        <div className="text-white font-semibold text-lg">🍽 RestauManager</div>
-        <div className="text-white/40 text-xs mt-0.5">Interface patron</div>
+        <div className="flex items-center gap-2">
+          {parametres.logo_url ? (
+            <img
+              src={parametres.logo_url}
+              alt="logo"
+              className="w-7 h-7 object-contain rounded"
+            />
+          ) : (
+            <span className="text-xl">🍽</span>
+          )}
+          <div>
+            <div className="text-white font-semibold text-sm leading-tight">
+              {parametres.nom_restaurant || 'RestauManager'}
+            </div>
+            <div className="text-white/40 text-xs">Interface patron</div>
+          </div>
+        </div>
       </div>
 
+      {/* Badge patron */}
       <div className="mx-3 mt-3 bg-amber-500/15 border border-amber-500/25 rounded-xl p-3 flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center
                         text-stone-900 text-xs font-bold flex-shrink-0">
@@ -45,6 +65,7 @@ export default function SidebarPatron() {
         </div>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(item => (
           <NavLink
@@ -64,6 +85,7 @@ export default function SidebarPatron() {
         ))}
       </nav>
 
+      {/* Déconnexion */}
       <div className="px-5 py-4 border-t border-white/10">
         <button
           onClick={handleLogout}

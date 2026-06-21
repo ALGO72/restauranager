@@ -35,3 +35,20 @@ exports.deleteEmploye = async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 }
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { ancienMotDePasse, nouveauMotDePasse } = req.body
+    const id = Number(req.params.id)
+
+    // Vérifier que l'utilisateur modifie son propre mot de passe
+    if (req.user.id !== id && req.user.role !== 'PATRON') {
+      return res.status(403).json({ error: 'Accès refusé' })
+    }
+
+    await utilisateursService.changePassword(id, ancienMotDePasse, nouveauMotDePasse)
+    res.json({ message: 'Mot de passe modifié avec succès' })
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+}

@@ -1,5 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ParametresProvider } from './context/ParametresContext'
+import Parametres from './pages/patron/Parametres'
+
 
 import Login     from './pages/Login'
 import MenuVente from './pages/employe/MenuVente'
@@ -59,6 +62,9 @@ function AppRoutes() {
       <Route path="/patron/employes" element={
         <PrivateRoute role="PATRON"><Employes /></PrivateRoute>
       } />
+      <Route path="/patron/parametres" element={
+        <PrivateRoute role="PATRON"><Parametres /></PrivateRoute>
+    } />
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
@@ -68,7 +74,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ParametresProvider>
+        <AppRoutes />
+      </ParametresProvider>
     </AuthProvider>
   )
 }
