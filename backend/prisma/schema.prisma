@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PATRON
+  EMPLOYE
+}
+
+model Utilisateur {
+  id          Int      @id @default(autoincrement())
+  nom         String
+  prenom      String
+  identifiant String   @unique
+  motDePasse  String
+  role        Role     @default(EMPLOYE)
+  actif       Boolean  @default(true)
+  creeLe      DateTime @default(now())
+  ventes      Vente[]
+}
+
+model CategorieMenu {
+  id       Int           @id @default(autoincrement())
+  nom      String
+  ordre    Int           @default(0)
+  articles ArticleMenu[]
+}
+
+model ArticleMenu {
+  id          Int           @id @default(autoincrement())
+  categorieId Int
+  nom         String
+  prixVente   Float
+  disponible  Boolean       @default(true)
+  description String?
+  categorie   CategorieMenu @relation(fields: [categorieId], references: [id])
+  lignes      LigneVente[]
+}
+
+model Vente {
+  id           Int          @id @default(autoincrement())
+  employeId    Int
+  dateHeure    DateTime     @default(now())
+  montantTotal Float
+  note         String?
+  employe      Utilisateur  @relation(fields: [employeId], references: [id])
+  lignes       LigneVente[]
+}
+
+model LigneVente {
+  id           Int         @id @default(autoincrement())
+  venteId      Int
+  articleId    Int
+  quantite     Int
+  prixUnitaire Float
+  sousTotal    Float
+  vente        Vente       @relation(fields: [venteId], references: [id])
+  article      ArticleMenu @relation(fields: [articleId], references: [id])
+}
+
+model CategorieProduit {
+  id       Int            @id @default(autoincrement())
+  nom      String
+  produits ProduitStock[]
+}
+
+model ProduitStock {
+  id            Int              @id @default(autoincrement())
+  categorieId   Int
+  nom           String
+  unite         String
+  quantiteStock Float            @default(0)
+  seuilAlerte   Float            @default(0)
+  categorie     CategorieProduit @relation(fields: [categorieId], references: [id])
+  achats        Achat[]
+}
+
+model Achat {
+  id           Int          @id @default(autoincrement())
+  produitId    Int
+  fournisseur  String
+  quantite     Float
+  prixUnitaire Float
+  coutTotal    Float
+  dateAchat    DateTime     @default(now())
+  note         String?
+  produit      ProduitStock @relation(fields: [produitId], references: [id])
+}
