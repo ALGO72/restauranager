@@ -5,6 +5,7 @@ import api from '../../services/api'
 
 export default function Menu() {
   const queryClient = useQueryClient()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editArticle, setEditArticle] = useState(null)
   const [form, setForm] = useState({ nom: '', prixVente: '', categorieId: '', description: '', disponible: true })
@@ -79,35 +80,52 @@ export default function Menu() {
   }))
 
   return (
-    <div className="flex h-screen bg-stone-100">
-      <SidebarPatron />
+    <div className="flex flex-col lg:flex-row h-screen bg-stone-100">
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed lg:static inset-y-0 left-0 z-30 transform transition-transform duration-200
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <SidebarPatron onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         {/* Topbar */}
-        <div className="bg-white border-b border-stone-200 px-6 h-14 flex items-center justify-between flex-shrink-0">
-          <h1 className="text-base font-semibold text-stone-800">Gestion du menu</h1>
+        <div className="bg-white border-b border-stone-200 px-4 lg:px-6 h-14 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-stone-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-base font-semibold text-stone-800">Gestion du menu</h1>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowCatForm(!showCatForm)}
-              className="px-3 py-1.5 text-sm border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50"
+              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50"
             >
               + Catégorie
             </button>
             <button
               onClick={() => { resetForm(); setShowForm(true) }}
-              className="px-3 py-1.5 text-sm bg-red-900 text-white rounded-lg hover:bg-red-800"
+              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm bg-red-900 text-white rounded-lg hover:bg-red-800"
             >
               + Article
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
 
-          {/* Formulaire nouvelle catégorie */}
+          {/* Formulaire catégorie */}
           {showCatForm && (
-            <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4 flex gap-3">
+            <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4 flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 placeholder="Nom de la catégorie (ex: Plats, Boissons...)"
@@ -115,28 +133,30 @@ export default function Menu() {
                 onChange={e => setNewCat(e.target.value)}
                 className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
               />
-              <button
-                onClick={() => createCategorie.mutate({ nom: newCat })}
-                className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800"
-              >
-                Créer
-              </button>
-              <button
-                onClick={() => setShowCatForm(false)}
-                className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600"
-              >
-                Annuler
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => createCategorie.mutate({ nom: newCat })}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800"
+                >
+                  Créer
+                </button>
+                <button
+                  onClick={() => setShowCatForm(false)}
+                  className="flex-1 sm:flex-none px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600"
+                >
+                  Annuler
+                </button>
+              </div>
             </div>
           )}
 
           {/* Formulaire article */}
           {showForm && (
-            <div className="bg-white rounded-xl border border-stone-200 p-5 mb-4">
+            <div className="bg-white rounded-xl border border-stone-200 p-4 lg:p-5 mb-4">
               <h2 className="text-sm font-semibold text-stone-800 mb-4">
                 {editArticle ? "Modifier l'article" : 'Nouvel article'}
               </h2>
-              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">Nom</label>
                   <input
@@ -193,18 +213,13 @@ export default function Menu() {
                   />
                   <label htmlFor="disponible" className="text-sm text-stone-600">Disponible</label>
                 </div>
-                <div className="col-span-2 flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600"
-                  >
+                <div className="col-span-1 sm:col-span-2 flex gap-2 justify-end">
+                  <button type="button" onClick={resetForm}
+                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">
                     Annuler
                   </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800"
-                  >
+                  <button type="submit"
+                    className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800">
                     {editArticle ? 'Modifier' : 'Ajouter'}
                   </button>
                 </div>
@@ -212,7 +227,7 @@ export default function Menu() {
             </div>
           )}
 
-          {/* Liste articles par catégorie */}
+          {/* Liste articles */}
           {categories.length === 0 ? (
             <div className="bg-white rounded-xl border border-stone-200 p-10 text-center">
               <div className="text-4xl mb-3">🍽</div>
@@ -221,34 +236,26 @@ export default function Menu() {
           ) : (
             grouped.map(cat => (
               <div key={cat.id} className="mb-6">
-
-                {/* Titre catégorie + bouton supprimer */}
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-semibold text-stone-500 uppercase tracking-wider">
                     {cat.nom} ({cat.articles.length})
                   </h2>
                   {cat.articles.length === 0 && (
                     <button
-                      onClick={() => {
-                        if (confirm(`Supprimer la catégorie "${cat.nom}" ?`))
-                          deleteCategorie.mutate(cat.id)
-                      }}
+                      onClick={() => { if (confirm(`Supprimer "${cat.nom}" ?`)) deleteCategorie.mutate(cat.id) }}
                       className="text-xs text-red-500 hover:text-red-700 underline"
                     >
-                      Supprimer cette catégorie
+                      Supprimer
                     </button>
                   )}
                 </div>
-
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {cat.articles.map(article => (
                     <div key={article.id} className="bg-white rounded-xl border border-stone-200 p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="font-medium text-stone-800 text-sm">{article.nom}</div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          article.disponible
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-red-100 text-red-600'
+                        <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
+                          article.disponible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
                         }`}>
                           {article.disponible ? 'Dispo' : 'Indispo'}
                         </span>
@@ -267,10 +274,7 @@ export default function Menu() {
                           Modifier
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm('Supprimer cet article ?'))
-                              deleteArticle.mutate(article.id)
-                          }}
+                          onClick={() => { if (confirm('Supprimer ?')) deleteArticle.mutate(article.id) }}
                           className="flex-1 text-xs py-1.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50"
                         >
                           Supprimer
@@ -279,7 +283,7 @@ export default function Menu() {
                     </div>
                   ))}
                   {cat.articles.length === 0 && (
-                    <p className="text-sm text-stone-400 col-span-3">Aucun article dans cette catégorie.</p>
+                    <p className="text-sm text-stone-400 col-span-full">Aucun article dans cette catégorie.</p>
                   )}
                 </div>
               </div>

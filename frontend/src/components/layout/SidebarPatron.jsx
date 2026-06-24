@@ -13,7 +13,7 @@ const navItems = [
   { to: '/patron/parametres', icon: '⚙️', label: 'Paramètres' },
 ]
 
-export default function SidebarPatron() {
+export default function SidebarPatron({ onClose }) {
   const { user, logout } = useAuth()
   const parametres = useParametres()
   const navigate = useNavigate()
@@ -23,22 +23,22 @@ export default function SidebarPatron() {
     navigate('/login')
   }
 
+  const handleNav = () => {
+    if (onClose) onClose()
+  }
+
   const initiales = user
     ? `${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase()
     : '?'
 
   return (
-    <aside className="w-52 bg-stone-900 flex flex-col flex-shrink-0 h-screen">
+    <aside className="w-52 bg-stone-900 flex flex-col h-screen">
 
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-2">
           {parametres.logo_url ? (
-            <img
-              src={parametres.logo_url}
-              alt="logo"
-              className="w-7 h-7 object-contain rounded"
-            />
+            <img src={parametres.logo_url} alt="logo" className="w-7 h-7 object-contain rounded" />
           ) : (
             <span className="text-xl">🍽</span>
           )}
@@ -53,14 +53,11 @@ export default function SidebarPatron() {
 
       {/* Badge patron */}
       <div className="mx-3 mt-3 bg-amber-500/15 border border-amber-500/25 rounded-xl p-3 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center
-                        text-stone-900 text-xs font-bold flex-shrink-0">
+        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-stone-900 text-xs font-bold flex-shrink-0">
           {initiales}
         </div>
         <div>
-          <div className="text-white text-sm font-medium">
-            {user?.prenom} {user?.nom}
-          </div>
+          <div className="text-white text-sm font-medium">{user?.prenom} {user?.nom}</div>
           <div className="text-amber-500 text-xs">Patron</div>
         </div>
       </div>
@@ -71,6 +68,7 @@ export default function SidebarPatron() {
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={handleNav}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive

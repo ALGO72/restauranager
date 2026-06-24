@@ -28,7 +28,9 @@ export default function Parametres() {
 
   const { data: parametres } = useQuery({
     queryKey: ['parametres'],
-    queryFn: () => api.get('/parametres').then(r => r.data)
+    queryFn: () => api.get('/parametres').then(r => r.data),
+    staleTime: 0,
+    gcTime: 0,
   })
 
   useEffect(() => {
@@ -38,8 +40,10 @@ export default function Parametres() {
   const updateParametres = useMutation({
     mutationFn: (data) => api.put('/parametres', data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['parametres'])
       showToast('✅ Paramètres sauvegardés !')
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     }
   })
 
@@ -87,9 +91,11 @@ export default function Parametres() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-2xl space-y-6">
 
-            {/* Informations restaurant */}
+          {/* Deux colonnes côte à côte */}
+          <div className="grid grid-cols-2 gap-6">
+
+            {/* Colonne gauche — Informations restaurant */}
             <form onSubmit={handleSubmitParametres}>
               <div className="bg-white rounded-xl border border-stone-200 p-6">
                 <h2 className="text-sm font-semibold text-stone-800 mb-4">
@@ -108,7 +114,7 @@ export default function Parametres() {
                       placeholder="Ex: Chez Mama Africa"
                     />
                     <p className="text-xs text-stone-400 mt-1">
-                      Ce nom apparaîtra dans toute l'application
+                      Apparaît dans toute l'application
                     </p>
                   </div>
                   <div>
@@ -163,14 +169,14 @@ export default function Parametres() {
                       placeholder="https://exemple.com/logo.png"
                     />
                     <p className="text-xs text-stone-400 mt-1">
-                      Hébergez votre logo sur imgur.com ou imgbb.com (gratuit)
+                      Hébergez votre logo sur imgur.com (gratuit)
                     </p>
                     {form.logo_url && (
                       <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg mt-2">
                         <img
                           src={form.logo_url}
-                          alt="Logo aperçu"
-                          className="w-12 h-12 object-contain rounded"
+                          alt="Logo"
+                          className="w-10 h-10 object-contain rounded"
                           onError={e => e.target.style.display = 'none'}
                         />
                         <span className="text-xs text-stone-500">Aperçu du logo</span>
@@ -181,15 +187,15 @@ export default function Parametres() {
                 <button
                   type="submit"
                   disabled={updateParametres.isPending}
-                  className="mt-5 w-full py-2.5 bg-red-900 hover:bg-red-800 text-white font-medium
-                             rounded-xl text-sm transition-colors disabled:opacity-60"
+                  className="mt-6 w-full py-2.5 bg-red-900 hover:bg-red-800 text-white
+                             font-medium rounded-xl text-sm transition-colors disabled:opacity-60"
                 >
                   {updateParametres.isPending ? 'Enregistrement...' : '✓ Sauvegarder'}
                 </button>
               </div>
             </form>
 
-            {/* Changer mot de passe */}
+            {/* Colonne droite — Mot de passe */}
             <form onSubmit={handleSubmitPassword}>
               <div className="bg-white rounded-xl border border-stone-200 p-6">
                 <h2 className="text-sm font-semibold text-stone-800 mb-4">
@@ -235,12 +241,37 @@ export default function Parametres() {
                       placeholder="••••••••"
                     />
                   </div>
+
+                  {/* Règles mot de passe */}
+                  <div className="bg-stone-50 rounded-lg p-3">
+                    <p className="text-xs font-medium text-stone-600 mb-2">Règles :</p>
+                    <ul className="space-y-1">
+                      <li className={`text-xs flex items-center gap-1 ${
+                        pwForm.nouveauMotDePasse.length >= 6
+                          ? 'text-green-600'
+                          : 'text-stone-400'
+                      }`}>
+                        {pwForm.nouveauMotDePasse.length >= 6 ? '✓' : '○'} Au moins 6 caractères
+                      </li>
+                      <li className={`text-xs flex items-center gap-1 ${
+                        pwForm.nouveauMotDePasse &&
+                        pwForm.nouveauMotDePasse === pwForm.confirmation
+                          ? 'text-green-600'
+                          : 'text-stone-400'
+                      }`}>
+                        {pwForm.nouveauMotDePasse &&
+                         pwForm.nouveauMotDePasse === pwForm.confirmation
+                          ? '✓' : '○'} Les mots de passe correspondent
+                      </li>
+                    </ul>
+                  </div>
                 </div>
+
                 <button
                   type="submit"
                   disabled={changePassword.isPending}
-                  className="mt-5 w-full py-2.5 bg-stone-800 hover:bg-stone-700 text-white font-medium
-                             rounded-xl text-sm transition-colors disabled:opacity-60"
+                  className="mt-6 w-full py-2.5 bg-stone-800 hover:bg-stone-700 text-white
+                             font-medium rounded-xl text-sm transition-colors disabled:opacity-60"
                 >
                   {changePassword.isPending ? 'Modification...' : '🔐 Modifier le mot de passe'}
                 </button>
