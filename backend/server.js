@@ -5,7 +5,12 @@ require('dotenv').config()
 const app = express()
 
 // Middlewares globaux
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://restauranager.vercel.app'
+  ]
+}))
 app.use(express.json())
 
 // Routes
@@ -16,6 +21,7 @@ app.use('/api/achats',       require('./src/routes/achats.routes'))
 app.use('/api/stock',        require('./src/routes/stock.routes'))
 app.use('/api/utilisateurs', require('./src/routes/utilisateurs.routes'))
 app.use('/api/dashboard',    require('./src/routes/dashboard.routes'))
+app.use('/api/parametres',   require('./src/routes/parametres.routes'))
 
 // Route de test
 app.get('/', (req, res) => {
@@ -32,5 +38,3 @@ const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)
 })
-
-app.use('/api/parametres', require('./src/routes/parametres.routes'))
