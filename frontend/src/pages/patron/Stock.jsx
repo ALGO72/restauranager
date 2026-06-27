@@ -53,33 +53,31 @@ export default function Stock() {
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        <div className="bg-white border-b border-stone-200 px-4 lg:px-6 h-14 flex items-center gap-3 flex-shrink-0">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-stone-600">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <h1 className="text-base font-semibold text-stone-800">Gestion du stock</h1>
+        <div className="bg-white border-b border-stone-200 px-4 lg:px-6 h-14 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-stone-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-base font-semibold text-stone-800">Gestion du stock</h1>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-6">
 
-          {/* KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
             <div className="bg-white rounded-xl border border-stone-200 p-4">
               <div className="text-xs text-stone-400 mb-1">Total produits</div>
               <div className="text-xl lg:text-2xl font-bold text-stone-800">{stock.length}</div>
-              <div className="text-xs text-stone-400 mt-1">En stock</div>
             </div>
             <div className="bg-white rounded-xl border border-l-4 border-red-400 p-4">
               <div className="text-xs text-stone-400 mb-1">⚠ Alertes</div>
               <div className="text-xl lg:text-2xl font-bold text-red-500">{enAlerte.length}</div>
-              <div className="text-xs text-red-400 mt-1">Produits bas ou épuisés</div>
             </div>
             <div className="bg-white rounded-xl border border-l-4 border-green-400 p-4">
               <div className="text-xs text-stone-400 mb-1">✓ Normal</div>
               <div className="text-xl lg:text-2xl font-bold text-green-600">{normal.length}</div>
-              <div className="text-xs text-green-500 mt-1">Quantité suffisante</div>
             </div>
           </div>
 
@@ -109,40 +107,43 @@ export default function Stock() {
                   </div>
 
                   {/* Toggle revendable */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="flex items-center gap-3">
-                      <input type="checkbox" id="revendable" checked={form.revendable}
-                        onChange={e => setForm({ ...form, revendable: e.target.checked })}
-                        className="w-4 h-4 accent-blue-600" />
-                      <div>
-                        <label htmlFor="revendable" className="text-sm font-medium text-stone-700">
-                          Produit revendable
-                        </label>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Le stock sera déduit automatiquement à chaque vente liée.
-                        </p>
-                      </div>
+                  <div className="flex items-center justify-between bg-stone-50 rounded-lg px-4 py-3">
+                    <div>
+                      <div className="text-sm font-medium text-stone-800">Produit revendable</div>
+                      <div className="text-xs text-stone-400">Le stock se déduit automatiquement à chaque vente</div>
                     </div>
+                    <button type="button"
+                      onClick={() => setForm({ ...form, revendable: !form.revendable })}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${
+                        form.revendable ? 'bg-red-900' : 'bg-stone-300'
+                      }`}>
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        form.revendable ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
                   </div>
 
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={() => setEditProduit(null)}
-                      className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">Annuler</button>
+                      className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">
+                      Annuler
+                    </button>
                     <button type="submit"
-                      className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800">Enregistrer</button>
+                      className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800">
+                      Enregistrer
+                    </button>
                   </div>
                 </form>
               </div>
             </div>
           )}
 
-          {/* Liste stock */}
           {isLoading ? (
             <div className="p-8 text-center text-stone-400 text-sm">Chargement...</div>
           ) : stock.length === 0 ? (
             <div className="bg-white rounded-xl border border-stone-200 p-10 text-center">
               <div className="text-4xl mb-3">📦</div>
-              <p className="text-stone-500 text-sm">Aucun produit. Enregistrez des achats pour alimenter le stock.</p>
+              <p className="text-stone-500 text-sm">Aucun produit en stock.</p>
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
@@ -150,10 +151,11 @@ export default function Stock() {
                 <h2 className="text-sm font-semibold text-stone-800">État du stock</h2>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[500px]">
+                <table className="w-full min-w-[550px]">
                   <thead>
                     <tr className="bg-stone-50 text-xs text-stone-500 uppercase tracking-wider">
                       <th className="text-left px-4 lg:px-5 py-3">Produit</th>
+                      <th className="text-left px-4 lg:px-5 py-3">Catégorie</th>
                       <th className="text-left px-4 lg:px-5 py-3">Quantité</th>
                       <th className="text-left px-4 lg:px-5 py-3">Seuil</th>
                       <th className="text-left px-4 lg:px-5 py-3">Revendable</th>
@@ -166,22 +168,21 @@ export default function Stock() {
                       const alerte = produit.quantiteStock <= produit.seuilAlerte
                       return (
                         <tr key={produit.id} className={i % 2 === 0 ? 'bg-white' : 'bg-stone-50'}>
+                          <td className="px-4 lg:px-5 py-3 text-sm font-medium text-stone-800">{produit.nom}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm text-stone-500">{produit.categorie?.nom ?? '—'}</td>
                           <td className="px-4 lg:px-5 py-3 text-sm font-medium text-stone-800">
-                            {produit.nom}
-                          </td>
-                          <td className="px-4 lg:px-5 py-3 text-sm text-stone-800 font-medium">
                             {produit.quantiteStock} {produit.unite}
                           </td>
                           <td className="px-4 lg:px-5 py-3 text-sm text-stone-500">
                             {produit.seuilAlerte} {produit.unite}
                           </td>
                           <td className="px-4 lg:px-5 py-3">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                               produit.revendable
                                 ? 'bg-blue-100 text-blue-700'
                                 : 'bg-stone-100 text-stone-500'
                             }`}>
-                              {produit.revendable ? '🔗 Oui' : 'Non'}
+                              {produit.revendable ? '✓ Oui' : '— Non'}
                             </span>
                           </td>
                           <td className="px-4 lg:px-5 py-3">

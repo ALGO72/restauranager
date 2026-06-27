@@ -131,7 +131,7 @@ export default function Menu() {
           {/* Formulaire catégorie */}
           {showCatForm && (
             <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4 flex flex-col sm:flex-row gap-3">
-              <input type="text" placeholder="Nom de la catégorie..."
+              <input type="text" placeholder="Nom de la catégorie (ex: Plats, Boissons...)"
                 value={newCat} onChange={e => setNewCat(e.target.value)}
                 className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
               <div className="flex gap-2">
@@ -183,25 +183,31 @@ export default function Menu() {
                     placeholder="Ex: 33cl" />
                 </div>
 
-                {/* Lien produit stock revendable */}
+                {/* Sélecteur produit stock revendable */}
                 <div className="col-span-1 sm:col-span-2">
                   <label className="block text-xs font-medium text-stone-600 mb-1">
-                    🔗 Lier à un produit stock (déduction automatique)
+                    Lier au stock (produit revendable) — optionnel
                   </label>
                   <select value={form.produitStockId}
                     onChange={e => setForm({ ...form, produitStockId: e.target.value })}
                     className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800">
-                    <option value="">Aucun lien (plat cuisiné)</option>
+                    <option value="">Aucun (plat cuisiné)</option>
                     {produitsRevendables.map(p => (
                       <option key={p.id} value={p.id}>
-                        {p.nom} — stock : {p.quantiteStock} {p.unite}
+                        {p.nom} ({p.quantiteStock} {p.unite} en stock)
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-stone-400 mt-1">
-                    Seulement les produits marqués "revendable" apparaissent ici.
-                    À chaque vente, le stock sera déduit automatiquement.
-                  </p>
+                  {form.produitStockId && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      ✓ Le stock se déduira automatiquement à chaque vente
+                    </p>
+                  )}
+                  {produitsRevendables.length === 0 && (
+                    <p className="text-xs text-stone-400 mt-1">
+                      Aucun produit revendable. Allez dans Stock → Ajuster → activez "Revendable".
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -227,7 +233,7 @@ export default function Menu() {
           {categories.length === 0 ? (
             <div className="bg-white rounded-xl border border-stone-200 p-10 text-center">
               <div className="text-4xl mb-3">🍽</div>
-              <p className="text-stone-500 text-sm">Aucune catégorie. Commencez par créer une catégorie.</p>
+              <p className="text-stone-500 text-sm">Aucune catégorie.</p>
             </div>
           ) : (
             grouped.map(cat => (
@@ -237,8 +243,11 @@ export default function Menu() {
                     {cat.nom} ({cat.articles.length})
                   </h2>
                   {cat.articles.length === 0 && (
-                    <button onClick={() => { if (confirm(`Supprimer "${cat.nom}" ?`)) deleteCategorie.mutate(cat.id) }}
-                      className="text-xs text-red-500 hover:text-red-700 underline">Supprimer</button>
+                    <button
+                      onClick={() => { if (confirm(`Supprimer "${cat.nom}" ?`)) deleteCategorie.mutate(cat.id) }}
+                      className="text-xs text-red-500 hover:text-red-700 underline">
+                      Supprimer
+                    </button>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -255,11 +264,10 @@ export default function Menu() {
                       {article.description && (
                         <p className="text-xs text-stone-400 mb-1">{article.description}</p>
                       )}
-                      {/* Badge stock lié */}
                       {article.produitStock && (
-                        <div className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded mb-2 inline-block">
-                          🔗 Stock: {article.produitStock.nom} ({article.produitStock.quantiteStock} {article.produitStock.unite})
-                        </div>
+                        <p className="text-xs text-blue-600 mb-1">
+                          📦 Stock lié : {article.produitStock.nom} ({article.produitStock.quantiteStock} {article.produitStock.unite})
+                        </p>
                       )}
                       <div className="text-red-900 font-bold text-base mb-3">
                         {Number(article.prixVente).toLocaleString('fr-FR')} FCFA
@@ -277,7 +285,7 @@ export default function Menu() {
                     </div>
                   ))}
                   {cat.articles.length === 0 && (
-                    <p className="text-sm text-stone-400 col-span-full">Aucun article dans cette catégorie.</p>
+                    <p className="text-sm text-stone-400 col-span-full">Aucun article.</p>
                   )}
                 </div>
               </div>
