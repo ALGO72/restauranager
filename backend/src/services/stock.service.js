@@ -10,5 +10,6 @@ exports.updateStock = (id, data) => prisma.produitStock.update({
   data: {
     quantiteStock: parseFloat(data.quantiteStock),
     seuilAlerte: parseFloat(data.seuilAlerte),
+    revendable: data.revendable ?? false,
   }
 })

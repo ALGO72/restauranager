@@ -5,7 +5,7 @@ exports.getCategories = () => prisma.categorieMenu.findMany({
 })
 
 exports.getArticles = () => prisma.articleMenu.findMany({
-  include: { categorie: true },
+  include: { categorie: true, produitStock: true },
   orderBy: { nom: 'asc' }
 })
 
@@ -20,6 +20,7 @@ exports.createArticle = (data) => prisma.articleMenu.create({
     disponible: data.disponible ?? true,
     description: data.description ?? null,
     categorieId: parseInt(data.categorieId),
+    produitStockId: data.produitStockId ? parseInt(data.produitStockId) : null,
   }
 })
 
@@ -31,13 +32,10 @@ exports.updateArticle = (id, data) => prisma.articleMenu.update({
     disponible: data.disponible,
     description: data.description ?? null,
     categorieId: parseInt(data.categorieId),
+    produitStockId: data.produitStockId ? parseInt(data.produitStockId) : null,
   }
 })
 
-exports.deleteArticle = (id) => prisma.articleMenu.delete({
-  where: { id }
-})
+exports.deleteArticle = (id) => prisma.articleMenu.delete({ where: { id } })
 
-exports.deleteCategorie = (id) => prisma.categorieMenu.delete({
-  where: { id }
-})
+exports.deleteCategorie = (id) => prisma.categorieMenu.delete({ where: { id } })

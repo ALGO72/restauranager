@@ -8,7 +8,10 @@ export default function Menu() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editArticle, setEditArticle] = useState(null)
-  const [form, setForm] = useState({ nom: '', prixVente: '', categorieId: '', description: '', disponible: true })
+  const [form, setForm] = useState({
+    nom: '', prixVente: '', categorieId: '',
+    description: '', disponible: true, produitStockId: ''
+  })
   const [showCatForm, setShowCatForm] = useState(false)
   const [newCat, setNewCat] = useState('')
 
@@ -21,6 +24,14 @@ export default function Menu() {
     queryKey: ['categories'],
     queryFn: () => api.get('/menu/categories').then(r => r.data)
   })
+
+  const { data: stock = [] } = useQuery({
+    queryKey: ['stock'],
+    queryFn: () => api.get('/stock').then(r => r.data)
+  })
+
+  // Seulement les produits revendables
+  const produitsRevendables = stock.filter(p => p.revendable)
 
   const createArticle = useMutation({
     mutationFn: (data) => api.post('/menu/articles', data),
@@ -48,7 +59,7 @@ export default function Menu() {
   })
 
   const resetForm = () => {
-    setForm({ nom: '', prixVente: '', categorieId: '', description: '', disponible: true })
+    setForm({ nom: '', prixVente: '', categorieId: '', description: '', disponible: true, produitStockId: '' })
     setShowForm(false)
     setEditArticle(null)
   }
@@ -60,7 +71,8 @@ export default function Menu() {
       prixVente: article.prixVente,
       categorieId: article.categorieId,
       description: article.description ?? '',
-      disponible: article.disponible
+      disponible: article.disponible,
+      produitStockId: article.produitStockId ?? ''
     })
     setShowForm(true)
   }
@@ -82,12 +94,10 @@ export default function Menu() {
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-stone-100">
 
-      {/* Overlay mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <div className={`fixed lg:static inset-y-0 left-0 z-30 transform transition-transform duration-200
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <SidebarPatron onClose={() => setSidebarOpen(false)} />
@@ -95,7 +105,6 @@ export default function Menu() {
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        {/* Topbar */}
         <div className="bg-white border-b border-stone-200 px-4 lg:px-6 h-14 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-stone-600">
@@ -106,16 +115,12 @@ export default function Menu() {
             <h1 className="text-base font-semibold text-stone-800">Gestion du menu</h1>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => setShowCatForm(!showCatForm)}
-              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50"
-            >
+            <button onClick={() => setShowCatForm(!showCatForm)}
+              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50">
               + Catégorie
             </button>
-            <button
-              onClick={() => { resetForm(); setShowForm(true) }}
-              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm bg-red-900 text-white rounded-lg hover:bg-red-800"
-            >
+            <button onClick={() => { resetForm(); setShowForm(true) }}
+              className="px-2 lg:px-3 py-1.5 text-xs lg:text-sm bg-red-900 text-white rounded-lg hover:bg-red-800">
               + Article
             </button>
           </div>
@@ -126,26 +131,14 @@ export default function Menu() {
           {/* Formulaire catégorie */}
           {showCatForm && (
             <div className="bg-white rounded-xl border border-stone-200 p-4 mb-4 flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                placeholder="Nom de la catégorie (ex: Plats, Boissons...)"
-                value={newCat}
-                onChange={e => setNewCat(e.target.value)}
-                className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
-              />
+              <input type="text" placeholder="Nom de la catégorie..."
+                value={newCat} onChange={e => setNewCat(e.target.value)}
+                className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800" />
               <div className="flex gap-2">
-                <button
-                  onClick={() => createCategorie.mutate({ nom: newCat })}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800"
-                >
-                  Créer
-                </button>
-                <button
-                  onClick={() => setShowCatForm(false)}
-                  className="flex-1 sm:flex-none px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600"
-                >
-                  Annuler
-                </button>
+                <button onClick={() => createCategorie.mutate({ nom: newCat })}
+                  className="flex-1 sm:flex-none px-4 py-2 bg-red-900 text-white rounded-lg text-sm">Créer</button>
+                <button onClick={() => setShowCatForm(false)}
+                  className="flex-1 sm:flex-none px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">Annuler</button>
               </div>
             </div>
           )}
@@ -159,34 +152,23 @@ export default function Menu() {
               <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">Nom</label>
-                  <input
-                    type="text"
-                    required
-                    value={form.nom}
+                  <input type="text" required value={form.nom}
                     onChange={e => setForm({ ...form, nom: e.target.value })}
                     className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
-                    placeholder="Ex: Poulet braisé"
-                  />
+                    placeholder="Ex: Bière Castel" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">Prix (FCFA)</label>
-                  <input
-                    type="number"
-                    required
-                    value={form.prixVente}
+                  <input type="number" required value={form.prixVente}
                     onChange={e => setForm({ ...form, prixVente: e.target.value })}
                     className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
-                    placeholder="Ex: 3500"
-                  />
+                    placeholder="Ex: 700" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">Catégorie</label>
-                  <select
-                    required
-                    value={form.categorieId}
+                  <select required value={form.categorieId}
                     onChange={e => setForm({ ...form, categorieId: e.target.value })}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
-                  >
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800">
                     <option value="">Choisir une catégorie</option>
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.nom}</option>
@@ -195,29 +177,43 @@ export default function Menu() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-stone-600 mb-1">Description (optionnel)</label>
-                  <input
-                    type="text"
-                    value={form.description}
+                  <input type="text" value={form.description}
                     onChange={e => setForm({ ...form, description: e.target.value })}
                     className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800"
-                    placeholder="Ex: Avec frites"
-                  />
+                    placeholder="Ex: 33cl" />
                 </div>
+
+                {/* Lien produit stock revendable */}
+                <div className="col-span-1 sm:col-span-2">
+                  <label className="block text-xs font-medium text-stone-600 mb-1">
+                    🔗 Lier à un produit stock (déduction automatique)
+                  </label>
+                  <select value={form.produitStockId}
+                    onChange={e => setForm({ ...form, produitStockId: e.target.value })}
+                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-800">
+                    <option value="">Aucun lien (plat cuisiné)</option>
+                    {produitsRevendables.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.nom} — stock : {p.quantiteStock} {p.unite}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-stone-400 mt-1">
+                    Seulement les produits marqués "revendable" apparaissent ici.
+                    À chaque vente, le stock sera déduit automatiquement.
+                  </p>
+                </div>
+
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="disponible"
-                    checked={form.disponible}
+                  <input type="checkbox" id="disponible" checked={form.disponible}
                     onChange={e => setForm({ ...form, disponible: e.target.checked })}
-                    className="w-4 h-4 accent-red-900"
-                  />
+                    className="w-4 h-4 accent-red-900" />
                   <label htmlFor="disponible" className="text-sm text-stone-600">Disponible</label>
                 </div>
+
                 <div className="col-span-1 sm:col-span-2 flex gap-2 justify-end">
                   <button type="button" onClick={resetForm}
-                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">
-                    Annuler
-                  </button>
+                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-600">Annuler</button>
                   <button type="submit"
                     className="px-4 py-2 bg-red-900 text-white rounded-lg text-sm hover:bg-red-800">
                     {editArticle ? 'Modifier' : 'Ajouter'}
@@ -241,12 +237,8 @@ export default function Menu() {
                     {cat.nom} ({cat.articles.length})
                   </h2>
                   {cat.articles.length === 0 && (
-                    <button
-                      onClick={() => { if (confirm(`Supprimer "${cat.nom}" ?`)) deleteCategorie.mutate(cat.id) }}
-                      className="text-xs text-red-500 hover:text-red-700 underline"
-                    >
-                      Supprimer
-                    </button>
+                    <button onClick={() => { if (confirm(`Supprimer "${cat.nom}" ?`)) deleteCategorie.mutate(cat.id) }}
+                      className="text-xs text-red-500 hover:text-red-700 underline">Supprimer</button>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -261,22 +253,24 @@ export default function Menu() {
                         </span>
                       </div>
                       {article.description && (
-                        <p className="text-xs text-stone-400 mb-2">{article.description}</p>
+                        <p className="text-xs text-stone-400 mb-1">{article.description}</p>
+                      )}
+                      {/* Badge stock lié */}
+                      {article.produitStock && (
+                        <div className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded mb-2 inline-block">
+                          🔗 Stock: {article.produitStock.nom} ({article.produitStock.quantiteStock} {article.produitStock.unite})
+                        </div>
                       )}
                       <div className="text-red-900 font-bold text-base mb-3">
                         {Number(article.prixVente).toLocaleString('fr-FR')} FCFA
                       </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(article)}
-                          className="flex-1 text-xs py-1.5 border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50"
-                        >
+                        <button onClick={() => handleEdit(article)}
+                          className="flex-1 text-xs py-1.5 border border-stone-300 rounded-lg text-stone-600 hover:bg-stone-50">
                           Modifier
                         </button>
-                        <button
-                          onClick={() => { if (confirm('Supprimer ?')) deleteArticle.mutate(article.id) }}
-                          className="flex-1 text-xs py-1.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50"
-                        >
+                        <button onClick={() => { if (confirm('Supprimer ?')) deleteArticle.mutate(article.id) }}
+                          className="flex-1 text-xs py-1.5 border border-red-200 rounded-lg text-red-600 hover:bg-red-50">
                           Supprimer
                         </button>
                       </div>

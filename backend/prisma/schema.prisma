@@ -32,16 +32,17 @@ model CategorieMenu {
 }
 
 model ArticleMenu {
-  id          Int           @id @default(autoincrement())
-  categorieId Int
-  nom         String
-  prixVente   Float
-  disponible  Boolean       @default(true)
-  description String?
-  categorie   CategorieMenu @relation(fields: [categorieId], references: [id])
-  lignes      LigneVente[]
+  id             Int            @id @default(autoincrement())
+  categorieId    Int
+  nom            String
+  prixVente      Float
+  disponible     Boolean        @default(true)
+  description    String?
+  produitStockId Int?
+  categorie      CategorieMenu  @relation(fields: [categorieId], references: [id])
+  lignes         LigneVente[]
+  produitStock   ProduitStock?  @relation(fields: [produitStockId], references: [id])
 }
-
 model Vente {
   id           Int          @id @default(autoincrement())
   employeId    Int
@@ -76,8 +77,10 @@ model ProduitStock {
   unite         String
   quantiteStock Float            @default(0)
   seuilAlerte   Float            @default(0)
+  revendable    Boolean          @default(false)
   categorie     CategorieProduit @relation(fields: [categorieId], references: [id])
   achats        Achat[]
+  articles      ArticleMenu[]
 }
 
 model Achat {

@@ -13,7 +13,9 @@ exports.createVente = async (data, employeId) => {
   const montantTotal = data.lignes.reduce(
     (sum, l) => sum + l.prixUnitaire * l.quantite, 0
   )
-  return prisma.vente.create({
+
+  // Créer la vente
+  const vente = await prisma.vente.create({
     data: {
       employeId,
       montantTotal,
@@ -28,7 +30,24 @@ exports.createVente = async (data, employeId) => {
       }
     },
     include: {
-      lignes: { include: { article: true } }
+      lignes: { include: { article: { include: { produitStock: true } } } }
     }
   })
+
+  // Déduire automatiquement le stock pour les produits revendables
+  for (const ligne of vente.lignes) {
+    const produit = ligne.article.produitStock
+    if (produit && produit.revendable) {
+      await prisma.produitStock.update({
+        where: { id: produit.id },
+        data: {
+          quantiteStock: {
+            decrement: ligne.quantite
+          }
+        }
+      })
+    }
+  }
+
+  return vente
 }
